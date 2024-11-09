@@ -4,26 +4,44 @@ import Search from "./Search";
 
 const WeatherApp = () => {
   const [weather, setWeather] = useState(null);
-  const [city, setCity] = useState("");
-  const apikey = "Your_Api_Key";
+  const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
+  console.log("API Key:", apiKey);
 
   const fetchWeather = async (cityName) => {
-    const response = await fetch(
-      `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apikey}&units=metric`
-    );
-    const data = await response.json();
-    if (data.cod === 200) {
-      setWeather(data);
-    } else {
-      alert("city not found");
+    try {
+      console.log("City being searched:", cityName);
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}&units=metric`
+      );
+
+      if (!response.ok) {
+        console.log("Response Status:", response.status);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Weather Data:", data);
+
+      if (data.cod === 200) {
+        setWeather(data);
+      } else {
+        console.error("API Error:", data.message);
+        alert(`API Error: ${data.message}`);
+      }
+    } catch (error) {
+      console.error("Error in fetchWeather:", error);
+      alert(
+        "There was an error fetching the weather data. Please check the console."
+      );
     }
   };
+
   return (
     <div className="weather-app">
-      <Search setCity={setCity} fetchWeather={fetchWeather} />
+      <Search fetchWeather={fetchWeather} />
       {weather && <Weather weather={weather} />}
     </div>
   );
 };
 
-export default Weather;
+export default WeatherApp;
